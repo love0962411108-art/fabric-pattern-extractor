@@ -21,8 +21,8 @@ function PatternExtractorComponent({
     if (image && canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
-      canvas.width = image.width;
-      canvas.height = image.height;
+      canvas.width = image.naturalWidth || image.width;
+      canvas.height = image.naturalHeight || image.height;
       ctx.drawImage(image, 0, 0);
     }
   }, [image]);
@@ -198,4 +198,3 @@ function PatternExtractorComponent({
 }
 
 export default PatternExtractorComponent;
-
