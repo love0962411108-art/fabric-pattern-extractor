@@ -9,6 +9,21 @@ export class ImageSegmentation {
     this.isModelLoaded = false;
   }
 
+  getImageDimensions(image) {
+    return {
+      width: image.naturalWidth || image.width,
+      height: image.naturalHeight || image.height,
+    };
+  }
+
+  createImageFromCanvas(canvas) {
+    return new Promise((resolve) => {
+      const outputImage = new Image();
+      outputImage.onload = () => resolve(outputImage);
+      outputImage.src = canvas.toDataURL();
+    });
+  }
+
   async loadModel() {
     this.isModelLoaded = true;
     return true;
@@ -19,10 +34,11 @@ export class ImageSegmentation {
       await this.loadModel();
     }
 
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      const { width, height } = this.getImageDimensions(image);
       const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(image, 0, 0);
 
@@ -35,10 +51,27 @@ export class ImageSegmentation {
       const segmentedCtx = segmentedCanvas.getContext('2d');
       segmentedCtx.putImageData(segmentedData, 0, 0);
 
-      const segmentedImage = new Image();
-      segmentedImage.onload = () => resolve(segmentedImage);
-      segmentedImage.src = segmentedCanvas.toDataURL();
+      const opaqueRatio = this.calculateOpaqueRatio(segmentedData.data);
+
+      if (opaqueRatio < 0.03) {
+        resolve(await this.createImageFromCanvas(canvas));
+        return;
+      }
+
+      resolve(await this.createImageFromCanvas(segmentedCanvas));
     });
+  }
+
+  calculateOpaqueRatio(data) {
+    let opaquePixels = 0;
+
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] > 0) {
+        opaquePixels += 1;
+      }
+    }
+
+    return opaquePixels / (data.length / 4);
   }
 
   performSegmentation(imageData) {
@@ -147,4 +180,3 @@ export class ImageSegmentation {
     );
   }
 }
-
