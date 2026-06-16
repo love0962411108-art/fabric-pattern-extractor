@@ -8,6 +8,13 @@ export class PatternExtractor {
     this.selectedRegion = null;
   }
 
+  getImageDimensions(image) {
+    return {
+      width: image.naturalWidth || image.width,
+      height: image.naturalHeight || image.height,
+    };
+  }
+
   async extractPatternAuto(image, options = {}) {
     const {
       minPatternSize = 50,
@@ -16,9 +23,10 @@ export class PatternExtractor {
     } = options;
 
     return new Promise((resolve) => {
+      const { width, height } = this.getImageDimensions(image);
       const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(image, 0, 0);
 
@@ -52,9 +60,10 @@ export class PatternExtractor {
 
   extractPatternManual(image, region) {
     return new Promise((resolve) => {
+      const { width, height } = this.getImageDimensions(image);
       const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(image, 0, 0);
 
@@ -155,4 +164,3 @@ export class PatternExtractor {
     return canvas;
   }
 }
-
